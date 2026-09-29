@@ -1,0 +1,36 @@
+name: Registry names
+description: Lowercase GHCR repository names. Docker rejects an uppercase owner.
+
+outputs:
+  owner:
+    description: Repository owner in lowercase
+    value: ${{ steps.names.outputs.owner }}
+  image_name:
+    description: owner/trmnl-ha
+    value: ${{ steps.names.outputs.image_name }}
+  cache_repo:
+    description: owner/trmnl-ha-cache
+    value: ${{ steps.names.outputs.cache_repo }}
+  terminus_image_name:
+    description: owner/trmnl-terminus
+    value: ${{ steps.names.outputs.terminus_image_name }}
+  terminus_cache_repo:
+    description: owner/trmnl-terminus-cache
+    value: ${{ steps.names.outputs.terminus_cache_repo }}
+
+runs:
+  using: composite
+  steps:
+    - id: names
+      shell: bash
+      run: |
+        # github.repository_owner keeps the account's capitalization.
+        # buildx rejects a registry reference that is not entirely lowercase.
+        owner=$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
+        {
+          echo "owner=${owner}"
+          echo "image_name=${owner}/trmnl-ha"
+          echo "cache_repo=${owner}/trmnl-ha-cache"
+          echo "terminus_image_name=${owner}/trmnl-terminus"
+          echo "terminus_cache_repo=${owner}/trmnl-terminus-cache"
+        } >> "$GITHUB_OUTPUT"
