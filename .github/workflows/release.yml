@@ -68,9 +68,9 @@ jobs:
         with:
           ref: ${{ needs.release-tag.outputs.tag }}
 
-      - name: Normalize registry names
+      - name: Lowercase the registry owner
         id: registry
-        uses: ./.github/actions/registry-names
+        run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -99,7 +99,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ steps.registry.outputs.image_name }}-${{ matrix.arch }}
+          images: ${{ env.REGISTRY }}/${{ steps.registry.outputs.owner }}/trmnl-ha-${{ matrix.arch }}
           tags: |
             type=semver,pattern={{version}},value=${{ needs.release-tag.outputs.tag }}
             type=semver,pattern={{major}}.{{minor}},value=${{ needs.release-tag.outputs.tag }}
@@ -116,9 +116,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: |
-            type=registry,ref=${{ env.REGISTRY }}/${{ steps.registry.outputs.cache_repo }}:${{ matrix.cache_tag }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ steps.registry.outputs.owner }}/trmnl-ha-cache:${{ matrix.cache_tag }}
             type=gha,scope=build-${{ matrix.cache_tag }}
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ steps.registry.outputs.cache_repo }}:${{ matrix.cache_tag }},mode=max
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ steps.registry.outputs.owner }}/trmnl-ha-cache:${{ matrix.cache_tag }},mode=max
           build-args: |
             BUILD_VERSION=${{ steps.version.outputs.version }}
           provenance: false
@@ -147,9 +147,9 @@ jobs:
         with:
           ref: ${{ needs.release-tag.outputs.tag }}
 
-      - name: Normalize registry names
+      - name: Lowercase the registry owner
         id: registry
-        uses: ./.github/actions/registry-names
+        run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -196,8 +196,8 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ steps.registry.outputs.terminus_image_name }}-${{ matrix.arch }}:${{ steps.version.outputs.version }}
-            ${{ env.REGISTRY }}/${{ steps.registry.outputs.terminus_image_name }}-${{ matrix.arch }}:latest
+            ${{ env.REGISTRY }}/${{ steps.registry.outputs.owner }}/trmnl-terminus-${{ matrix.arch }}:${{ steps.version.outputs.version }}
+            ${{ env.REGISTRY }}/${{ steps.registry.outputs.owner }}/trmnl-terminus-${{ matrix.arch }}:latest
           # Without these the base image's labels survive, and GitHub attaches the
           # package to usetrmnl/terminus rather than to this repository.
           labels: |
@@ -208,9 +208,9 @@ jobs:
           build-args: |
             BUILD_FROM=${{ steps.base.outputs.image }}
           cache-from: |
-            type=registry,ref=${{ env.REGISTRY }}/${{ steps.registry.outputs.terminus_cache_repo }}:${{ matrix.cache_tag }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ steps.registry.outputs.owner }}/trmnl-terminus-cache:${{ matrix.cache_tag }}
             type=gha,scope=terminus-${{ matrix.cache_tag }}
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ steps.registry.outputs.terminus_cache_repo }}:${{ matrix.cache_tag }},mode=max
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ steps.registry.outputs.owner }}/trmnl-terminus-cache:${{ matrix.cache_tag }},mode=max
           provenance: false
 
   # A release holds file assets, and images live in the registry, so the pull

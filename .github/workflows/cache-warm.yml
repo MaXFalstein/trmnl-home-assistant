@@ -28,9 +28,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Normalize registry names
+      - name: Lowercase the registry owner
         id: registry
-        uses: ./.github/actions/registry-names
+        run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -51,8 +51,8 @@ jobs:
           context: trmnl-ha
           platforms: ${{ matrix.platform }}
           push: false
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ steps.registry.outputs.cache_repo }}:${{ matrix.tag }}
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ steps.registry.outputs.cache_repo }}:${{ matrix.tag }},mode=max
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ steps.registry.outputs.owner }}/trmnl-ha-cache:${{ matrix.tag }}
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ steps.registry.outputs.owner }}/trmnl-ha-cache:${{ matrix.tag }},mode=max
           provenance: false
 
   warm-bun-cache:
